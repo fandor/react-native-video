@@ -23,6 +23,7 @@ static NSString *const playbackRate = @"rate";
   /* Required to publish events */
   RCTEventDispatcher *_eventDispatcher;
   BOOL _playbackRateObserverRegistered;
+  
   bool _pendingSeek;
   float _pendingSeekTime;
   float _lastSeekTime;

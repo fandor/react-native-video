@@ -101,6 +101,8 @@
     "RCTVideoPlayerViewController.h",
     "RCTVideoPlayerViewController.m",
     "RCTVideoPlayerViewControllerDelegate.h",
+    "RCTVideoResourceLoaderDelegate.h",
+    "RCTVideoResourceLoaderDelegate.m",
     "Video.js",
     "VideoResizeMode.js",
     "react-native-video.podspec"

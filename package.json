@@ -1,10 +1,87 @@
 {
-  "name": "react-native-video",
-  "version": "0.9.0",
+  "_args": [
+    [
+      {
+        "raw": "react-native-video@git+https://github.com/fandor/react-native-video.git",
+        "scope": null,
+        "escapedName": "react-native-video",
+        "name": "react-native-video",
+        "rawSpec": "git+https://github.com/fandor/react-native-video.git",
+        "spec": "git+https://github.com/fandor/react-native-video.git",
+        "type": "hosted",
+        "hosted": {
+          "type": "github",
+          "ssh": "git@github.com:fandor/react-native-video.git",
+          "sshUrl": "git+ssh://git@github.com/fandor/react-native-video.git",
+          "httpsUrl": "git+https://github.com/fandor/react-native-video.git",
+          "gitUrl": "git://github.com/fandor/react-native-video.git",
+          "shortcut": "github:fandor/react-native-video",
+          "directUrl": "https://raw.githubusercontent.com/fandor/react-native-video/master/package.json"
+        }
+      },
+      "/Users/jamieweber/repos/ios3"
+    ]
+  ],
+  "_from": "git+https://github.com/fandor/react-native-video.git",
+  "_id": "react-native-video@0.9.0",
+  "_inCache": true,
+  "_location": "/react-native-video",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "react-native-video@git+https://github.com/fandor/react-native-video.git",
+    "scope": null,
+    "escapedName": "react-native-video",
+    "name": "react-native-video",
+    "rawSpec": "git+https://github.com/fandor/react-native-video.git",
+    "spec": "git+https://github.com/fandor/react-native-video.git",
+    "type": "hosted",
+    "hosted": {
+      "type": "github",
+      "ssh": "git@github.com:fandor/react-native-video.git",
+      "sshUrl": "git+ssh://git@github.com/fandor/react-native-video.git",
+      "httpsUrl": "git+https://github.com/fandor/react-native-video.git",
+      "gitUrl": "git://github.com/fandor/react-native-video.git",
+      "shortcut": "github:fandor/react-native-video",
+      "directUrl": "https://raw.githubusercontent.com/fandor/react-native-video/master/package.json"
+    }
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "git+https://github.com/fandor/react-native-video.git#ed87f0956b8d4b517c42eceb422acb25443260a3",
+  "_shasum": "d29f746f611c40111eab3ed73386ed80cb9f38e4",
+  "_shrinkwrap": null,
+  "_spec": "react-native-video@git+https://github.com/fandor/react-native-video.git",
+  "_where": "/Users/jamieweber/repos/ios3",
+  "author": {
+    "name": "Brent Vatne",
+    "email": "brentvatne@gmail.com",
+    "url": "https://github.com/brentvatne"
+  },
+  "bugs": {
+    "url": "https://github.com/brentvatne/react-native-video/issues"
+  },
+  "contributors": [
+    {
+      "name": "Johannes Lumpe",
+      "email": "johannes@lum.pe"
+    },
+    {
+      "name": "Baris Sencan",
+      "email": "baris.sncn@gmail.com"
+    }
+  ],
+  "dependencies": {
+    "keymirror": "0.1.1"
+  },
   "description": "A <Video /> element for react-native",
-  "main": "Video.js",
-  "license": "MIT",
-  "author": "Brent Vatne <brentvatne@gmail.com> (https://github.com/brentvatne)",
+  "devDependencies": {
+    "babel-eslint": "5.0.0-beta8",
+    "eslint": "1.10.3",
+    "eslint-config-airbnb": "4.0.0",
+    "eslint-plugin-react": "3.16.1",
+    "jest-cli": "0.2.1"
+  },
   "files": [
     "android/build.gradle",
     "android/RCTVideo.iml",
@@ -28,31 +105,20 @@
     "VideoResizeMode.js",
     "react-native-video.podspec"
   ],
-  "contributors": [
-    {
-      "name": "Johannes Lumpe",
-      "email": "johannes@lum.pe"
-    },
-    {
-      "name": "Baris Sencan",
-      "email": "baris.sncn@gmail.com"
-    }
-  ],
+  "gitHead": "ed87f0956b8d4b517c42eceb422acb25443260a3",
+  "homepage": "https://github.com/brentvatne/react-native-video#readme",
+  "license": "MIT",
+  "main": "Video.js",
+  "name": "react-native-video",
+  "optionalDependencies": {},
+  "readme": "## react-native-video\n\nA `<Video>` component for react-native, as seen in\n[react-native-login](https://github.com/brentvatne/react-native-login)!\n\nRequires react-native >= 0.19.0\n\n### Add it to your project\n\nRun `npm i -S react-native-video`\n\n#### iOS\n\nInstall [rnpm](https://github.com/rnpm/rnpm) and run `rnpm link react-native-video`.\n\nIf you would like to allow other apps to play music over your video component, add:\n\n**AppDelegate.m**\n\n```objective-c\n#import <AVFoundation/AVFoundation.h>  // import\n\n- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions\n{\n  ...\n  [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];  // allow\n  ...\n}\n```\n\n#### Android\n\nInstall [rnpm](https://github.com/rnpm/rnpm) and run `rnpm link react-native-video`\n\nOr if you have trouble using [rnpm](https://github.com/rnpm/rnpm), make the following additions to the given files manually:\n\n**android/settings.gradle**\n\n```\ninclude ':react-native-video'\nproject(':react-native-video').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-video/android')\n```\n\n**android/app/build.gradle**\n\n```\ndependencies {\n   ...\n   compile project(':react-native-video')\n}\n```\n\n**MainActivity.java**\n\nOn top, where imports are:\n\n```java\nimport com.brentvatne.react.ReactVideoPackage;\n```\n\nUnder `.addPackage(new MainReactPackage())`:\n\n```java\n.addPackage(new ReactVideoPackage())\n```\n\n### Note: In react-native >= 0.29.0 you have to edit `MainApplication.java`\n\n**MainApplication.java** (react-native >= 0.29.0)\n\nOn top, where imports are:\n\n```java\nimport com.brentvatne.react.ReactVideoPackage;\n```\n\nUnder `.addPackage(new MainReactPackage())`:\n\n```java\n.addPackage(new ReactVideoPackage())\n```\n\n## Usage\n\n```javascript\n// Within your render function, assuming you have a file called\n// \"background.mp4\" in your project. You can include multiple videos\n// on a single screen if you like.\n<Video\n  source={{uri: \"background\"}} // Can be a URL or a local file.\n  rate={1.0}                   // 0 is paused, 1 is normal.\n  volume={1.0}                 // 0 is muted, 1 is normal.\n  muted={false}                // Mutes the audio entirely.\n  paused={false}               // Pauses playback entirely.\n  resizeMode=\"cover\"           // Fill the whole screen at aspect ratio.\n  repeat={true}                // Repeat forever.\n  playInBackground={false}     // Audio continues to play when aentering background.\n  playWhenInactive={false}     // [iOS] Video continues to play whcontrol or notification center are shown.\n  onLoadStart={this.loadStart} // Callback when video starts to load\n  onLoad={this.setDuration}    // Callback when video loads\n  onProgress={this.setTime}    // Callback every ~250ms with currentTime\n  onEnd={this.onEnd}           // Callback when playback finishes\n  onError={this.videoError}    // Callback when video cannot be loaded\n  style={styles.backgroundVideo}\n/>\n\n// Later on in your styles..\nvar styles = StyleSheet.create({\n  backgroundVideo: {\n    position: 'absolute',\n    top: 0,\n    left: 0,\n    bottom: 0,\n    right: 0,\n  },\n});\n```\n\n### Load files with the RN Asset System\n\nThe asset system [introduced in RN `0.14`](http://www.reactnative.com/react-native-v0-14-0-released/) allows loading local static resources using a `require` statement. As of version `react-native-video@0.9.0`, it's also be used to load video files in the same manner, e.g.\n\n```\n<Video\n  repeat\n  resizeMode='cover'\n  source={require('../assets/video/turntable-loop-1920x500-h264-512kbps-h264.mp4')}\n  style={styles.backgroundVideo}\n/>\n```\n\n**Tip**: When loading files locally on iOS it's necessary to add static video file to the _Copy Bundle Resources_ section of _Build Phases_ for your project's build target in Xcode.\n\n### Play in background on iOS\n\nTo enable audio to play in background on iOS the audio session needs to be set to `AVAudioSessionCategoryPlayback`. See [Apple documentation][3] for additional details.\n\n## Static Methods\n\n`seek(seconds)`\n\nSeeks the video to the specified time (in seconds). Access using a ref to the component\n\n## Examples\n\n- See an [Example integration][1] in `react-native-login` *note that this example uses an older version of this library, before we used `export default` -- if you use `require` you will need to do `require('react-native-video').default` as per instructions above.*\n- Try the included [VideoPlayer example][2] yourself:\n\n   ```sh\n   git clone git@github.com:brentvatne/react-native-video.git\n   cd react-native-video/Examples/VideoPlayer\n   npm install\n   open VideoPlayer.xcodeproj\n\n   ```\n\n   Then `Cmd+R` to start the React Packager, build and run the project in the simulator.\n\n- [Lumpen Radio](https://github.com/jhabdas/lumpen-radio) contains another example integration using local files and full screen background video.\n\n## TODOS\n\n- [ ] Add support for captions\n- [ ] Add support for playing multiple videos in a sequence (will interfere with current `repeat` implementation)\n- [ ] Callback to get buffering progress for remote videos\n- [ ] Bring API closer to HTML5 `<Video>` [reference](http://devdocs.io/html/element/video#attr-poster)\n\n[1]: https://github.com/brentvatne/react-native-login/blob/56c47a5d1e23781e86e19b27e10427fd6391f666/App/Screens/UserInfoScreen.js#L32-L35\n[2]: https://github.com/brentvatne/react-native-video/tree/master/Examples/VideoPlayer\n[3]: https://developer.apple.com/library/ios/qa/qa1668/_index.html\n\n---\n\n**MIT Licensed**\n",
+  "readmeFilename": "README.md",
   "repository": {
     "type": "git",
-    "url": "git@github.com:brentvatne/react-native-video.git"
-  },
-  "devDependencies": {
-    "jest-cli": "0.2.1",
-    "eslint": "1.10.3",
-    "babel-eslint": "5.0.0-beta8",
-    "eslint-plugin-react": "3.16.1",
-    "eslint-config-airbnb": "4.0.0"
-  },
-  "dependencies": {
-    "keymirror": "0.1.1"
+    "url": "git+ssh://git@github.com/brentvatne/react-native-video.git"
   },
   "scripts": {
-    "test": "node_modules/.bin/eslint *.js"
-  }
+    "test": "eslint *.js"
+  },
+  "version": "0.9.0"
 }

@@ -3,12 +3,19 @@
 #import "RCTBridgeModule.h"
 #import "RCTEventDispatcher.h"
 #import "UIView+React.h"
+#import "RCTVideoResourceLoaderDelegate.h"
 
 static NSString *const statusKeyPath = @"status";
 static NSString *const playbackLikelyToKeepUpKeyPath = @"playbackLikelyToKeepUp";
 static NSString *const playbackBufferEmptyKeyPath = @"playbackBufferEmpty";
 static NSString *const readyForDisplayKeyPath = @"readyForDisplay";
 static NSString *const playbackRate = @"rate";
+
+
+@interface RCTVideo () {
+    RCTVideoResourceLoaderDelegate *delegate;
+}
+@end
 
 @implementation RCTVideo
 {
@@ -274,19 +281,28 @@ static NSString *const playbackRate = @"rate";
 {
   bool isNetwork = [RCTConvert BOOL:[source objectForKey:@"isNetwork"]];
   bool isAsset = [RCTConvert BOOL:[source objectForKey:@"isAsset"]];
-  NSString *uri = [source objectForKey:@"uri"];
+  NSString *uri = @"https://fandor.akamaized-staging.net/HLS/82/8239/8239_zyara_with_dei_el_ayoubi_FILM_all.m3u8?hdnts=exp%3D1504282730%7Eacl%3D%2FHLS%2F82%2F8239%2F%2A%7Edata%3Dstart%3D0%2Cend%3D251~hmac=696ac189d6f6f58265b09ec5ee4a18ada1ef451e992f4b7be8e614d6655eba45&start=0&end=251";
   NSString *type = [source objectForKey:@"type"];
-
+    
+  NSLog(uri);
+    
   NSURL *url = (isNetwork || isAsset) ?
     [NSURL URLWithString:uri] :
     [[NSURL alloc] initFileURLWithPath:[[NSBundle mainBundle] pathForResource:uri ofType:type]];
 
-  if (isAsset) {
+//  if (isAsset) {
     AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];
+    
+    AVAssetResourceLoader *resourceLoader = asset.resourceLoader;
+    
+    
+    RCTVideoResourceLoaderDelegate *delegate = [[RCTVideoResourceLoaderDelegate alloc] init];
+    [resourceLoader setDelegate:delegate queue:dispatch_queue_create("RCTVideoResourceLoaderDelegate loader", nil)];
+    
     return [AVPlayerItem playerItemWithAsset:asset];
-  }
+//  }
 
-  return [AVPlayerItem playerItemWithURL:url];
+//  return [AVPlayerItem playerItemWithURL:url];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
@@ -305,6 +321,13 @@ static NSString *const playbackRate = @"rate";
         NSObject *width = @"undefined";
         NSObject *height = @"undefined";
         NSString *orientation = @"undefined";
+        BOOL isAvailable = NO;
+
+        AVMediaSelectionGroup *subtitleGroup = [_playerItem.asset mediaSelectionGroupForMediaCharacteristic:AVMediaCharacteristicLegible];
+
+        if (subtitleGroup) {
+          isAvailable = YES;
+        }
 
         if ([_playerItem.asset tracksWithMediaType:AVMediaTypeVideo].count > 0) {
           AVAssetTrack *videoTrack = [[_playerItem.asset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0];
@@ -331,6 +354,7 @@ static NSString *const playbackRate = @"rate";
                                                    @"canPlaySlowReverse": [NSNumber numberWithBool:_playerItem.canPlaySlowReverse],
                                                    @"canStepBackward": [NSNumber numberWithBool:_playerItem.canStepBackward],
                                                    @"canStepForward": [NSNumber numberWithBool:_playerItem.canStepForward],
+                                                   @"canShowCaptions": [NSNumber numberWithBool: isAvailable],
                                                    @"naturalSize": @{
                                                         @"width": width,
                                                         @"height": height,

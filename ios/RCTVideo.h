@@ -1,5 +1,6 @@
 #import "RCTView.h"
 #import <AVFoundation/AVFoundation.h>
+#import <AVFoundation/AVAssetResourceLoader.h>
 #import "AVKit/AVKit.h"
 #import "UIView+FindUIViewController.h"
 #import "RCTVideoPlayerViewController.h"
@@ -7,7 +8,7 @@
 
 @class RCTEventDispatcher;
 
-@interface RCTVideo : UIView <RCTVideoPlayerViewControllerDelegate>
+@interface RCTVideo : UIView <RCTVideoPlayerViewControllerDelegate, AVAssetResourceLoaderDelegate>
 
 - (instancetype)initWithEventDispatcher:(RCTEventDispatcher *)eventDispatcher NS_DESIGNATED_INITIALIZER;
 

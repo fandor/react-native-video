@@ -243,8 +243,6 @@ static NSString *const playbackRate = @"rate";
 {
 
 
-    NSLog(@"%@", [[NSProcessInfo processInfo] environment]);
-
     [self removePlayerTimeObserver];
     [self removePlayerItemObservers];
     _playerItem = [self playerItemForSource:source];

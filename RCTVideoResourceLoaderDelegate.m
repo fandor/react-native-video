@@ -1,63 +1,45 @@
 #import "RCTVideoResourceLoaderDelegate.h"
 
-static NSString *redirectScheme = @"rdtp";
-static NSString *customPlaylistScheme = @"cplp";
-static NSString *customKeyScheme = @"ckey";
-static NSString *httpScheme = @"http";
+static NSString *customKeyScheme = @"skd";
+static NSString *httpScheme = @"https";
 
-static NSString *customPlayListFormatPrefix = @"#EXTM3U\n"
-"#EXT-X-PLAYLIST-TYPE:EVENT\n"
-"#EXT-X-TARGETDURATION:10\n"
-"#EXT-X-VERSION:3\n"
-"#EXT-X-MEDIA-SEQUENCE:0\n";
+static NSString *certificateURL = @"https://fp-keyos.licensekeyserver.com/cert/05a33a58a0f40bc0ba0e037144dd8fc3.der";
+static NSString *licenseURL = @"https://fp-keyos.licensekeyserver.com/getkey";
 
-static NSString *customPlayListFormatElementInfo = @"#EXTINF:10, no desc\n";
-static NSString *customPlaylistFormatElementSegment = @"%@/fileSequence%d.ts\n";
+ static NSString *authXMLURL = @"https://staging.fandor.com/api/2/drm";
+//static NSString *authXMLURL = @"https://www.fandor.com/api/2/drm";
 
-static NSString *customEncryptionKeyInfo = @"#EXT-X-KEY:METHOD=AES-128,URI=\"%@/crypt0.key\", IV=0x3ff5be47e1cdbaec0a81051bcc894d63\n";
-static NSString *customPlayListFormatEnd = @"#EXT-X-ENDLIST";
-static int redirectErrorCode = 302;
+static NSString *apiSecret = @"ezr2type4dev";
+//static NSString *apiSecret = @""; // change to production secret from S3.
+
 static int badRequestErrorCode = 400;
 
-
-
 @interface RCTVideoResourceLoaderDelegate ()
-- (BOOL) schemeSupported:(NSString*) scheme;
+{
+    NSString* authXML;
+}
+- (BOOL) isSchemeSupported:(NSString*) scheme;
 - (void) reportError:(AVAssetResourceLoadingRequest *) loadingRequest withErrorCode:(int) error;
-@end
-
-
-@interface RCTVideoResourceLoaderDelegate (Redirect)
-- (BOOL) isRedirectSchemeValid:(NSString*) scheme;
-- (BOOL) handleRedirectRequest:(AVAssetResourceLoadingRequest*) loadingRequest;
-- (NSURLRequest* ) generateRedirectURL:(NSURLRequest *)sourceURL;
-@end
-
-@interface RCTVideoResourceLoaderDelegate (CustomPlaylist)
-- (BOOL) isCustomPlaylistSchemeValid:(NSString*) scheme;
-- (NSString*) getCustomPlaylist:(NSString *) urlPrefix andKeyPrefix:(NSString*) keyPrefix totalElements:(NSInteger) elements;
-- (BOOL) handleCustomPlaylistRequest:(AVAssetResourceLoadingRequest*) loadingRequest;
 @end
 
 @interface RCTVideoResourceLoaderDelegate (CustomKey)
 - (BOOL) isCustomKeySchemeValid:(NSString*) scheme;
 - (NSData*) getKey:(NSURL*) url;
+- (NSData*) getCertificate;
+
 - (BOOL) handleCustomKeyRequest:(AVAssetResourceLoadingRequest*) loadingRequest;
 @end
 
 #pragma mark - RCTVideoResourceLoaderDelegate
 
 @implementation RCTVideoResourceLoaderDelegate
-/*!
- *  is scheme supported
- */
-- (BOOL) schemeSupported:(NSString *)scheme
+
+- (BOOL) isSchemeSupported:(NSString *)scheme
 {
-    if ( [self isRedirectSchemeValid:scheme] ||
-        [self isCustomKeySchemeValid:scheme] ||
-        [self isCustomPlaylistSchemeValid:scheme])
-        return YES;
-    return NO;
+  if ( [self isCustomKeySchemeValid:scheme] )
+    return YES;
+  
+  return NO;
 }
 
 -(RCTVideoResourceLoaderDelegate *) init
@@ -70,30 +52,16 @@ static int badRequestErrorCode = 400;
 {
     [loadingRequest finishLoadingWithError:[NSError errorWithDomain: NSURLErrorDomain code:error userInfo: nil]];
 }
-/*!
- *  AVARLDelegateDemo's implementation of the protocol.
- *  Check the given request for valid schemes:
- *
- * 1) Redirect 2) Custom Play list 3) Custom key
- */
+
 - (BOOL) resourceLoader:(AVAssetResourceLoader *)resourceLoader shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest
 {
-    NSLog(@"LOGGING");
+    NSLog(@"%@ was called in AssetLoaderDelegate with loadingRequest: %@", NSStringFromSelector(_cmd), [[loadingRequest request] URL]);
+  
     NSString* scheme = [[[loadingRequest request] URL] scheme];
-    
-    if ([self isRedirectSchemeValid:scheme])
-        return [self handleRedirectRequest:loadingRequest];
-    
-    if ([self isCustomPlaylistSchemeValid:scheme]) {
-        dispatch_async (dispatch_get_main_queue(),  ^ {
-            [self handleCustomPlaylistRequest:loadingRequest];
-        });
-        return YES;
-    }
-    
-    if ([self isCustomKeySchemeValid:scheme]) {
+  
+    if ([customKeyScheme isEqualToString:scheme]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self handleCustomKeyRequest:loadingRequest];
+          [self handleCustomKeyRequest:loadingRequest];
         });
         return YES;
     }
@@ -101,109 +69,6 @@ static int badRequestErrorCode = 400;
     return NO;
 }
 
-@end
-
-#pragma mark - RCTVideoResourceLoaderDelegate Redirect
-
-@implementation RCTVideoResourceLoaderDelegate (Redirect)
-/*!
- * Validates the given redirect schme.
- */
-- (BOOL) isRedirectSchemeValid:(NSString *)scheme
-{
-    return ([redirectScheme isEqualToString:scheme]);
-}
-
--(NSURLRequest* ) generateRedirectURL:(NSURLRequest *)sourceURL
-{
-    NSURLRequest *redirect = [NSURLRequest requestWithURL:[NSURL URLWithString:[[[sourceURL URL] absoluteString] stringByReplacingOccurrencesOfString:redirectScheme withString:httpScheme]]];
-    return redirect;
-}
-/*!
- *  The delegate handler, handles the received request:
- *
- *  1) Verifies its a redirect request, otherwise report an error.
- *  2) Generates the new URL
- *  3) Create a reponse with the new URL and report success.
- */
-- (BOOL) handleRedirectRequest:(AVAssetResourceLoadingRequest *)loadingRequest
-{
-    NSURLRequest *redirect = nil;
-    
-    redirect = [self generateRedirectURL:(NSURLRequest *)[loadingRequest request]];
-    if (redirect)
-    {
-        [loadingRequest setRedirect:redirect];
-        NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:[redirect URL] statusCode:redirectErrorCode HTTPVersion:nil headerFields:nil];
-        [loadingRequest setResponse:response];
-        [loadingRequest finishLoading];
-    } else
-    {
-        [self reportError:loadingRequest withErrorCode:badRequestErrorCode];
-    }
-    return YES;
-}
-
-@end
-
-#pragma mark - RCTVideoResourceLoaderDelegate CustomPlaylist
-
-@implementation RCTVideoResourceLoaderDelegate (CustomPlaylist)
-
-- (BOOL) isCustomPlaylistSchemeValid:(NSString *)scheme
-{
-    return ([customPlaylistScheme isEqualToString:scheme]);
-}
-/*!
- * create a play list based on the given prefix and total elements
- */
-- (NSString*) getCustomPlaylist:(NSString *) urlPrefix andKeyPrefix:(NSString *) keyPrefix totalElements:(NSInteger) elements
-{
-    static NSMutableString  *customPlaylist = nil;
-    
-    if (customPlaylist)
-        return customPlaylist;
-    
-    customPlaylist = [[NSMutableString alloc] init];
-    [customPlaylist appendString:customPlayListFormatPrefix];
-    for (int i = 0; i < elements; ++i)
-    {
-        [customPlaylist appendString:customPlayListFormatElementInfo];
-        //We are using single key for all the segments but different IV, every 50 segments
-        if (0 == i)
-            [customPlaylist appendFormat:customEncryptionKeyInfo, keyPrefix];
-        [customPlaylist appendFormat:customPlaylistFormatElementSegment, urlPrefix, i];
-    }
-    [customPlaylist appendString:customPlayListFormatEnd];
-    return customPlaylist;
-}
-/*!
- *  Handles the custom play list scheme:
- *
- *  1) Verifies its a custom playlist request, otherwise report an error.
- *  2) Generates the play list.
- *  3) Create a reponse with the new URL and report success.
- */
-- (BOOL) handleCustomPlaylistRequest:(AVAssetResourceLoadingRequest *)loadingRequest
-{
-    //Prepare the playlist with redirect scheme.
-    NSString *prefix = [[[[loadingRequest request] URL] absoluteString] stringByReplacingOccurrencesOfString:customPlaylistScheme withString:redirectScheme];// stringByDeletingLastPathComponent];
-    NSRange range = [prefix rangeOfString:@"/" options:NSBackwardsSearch];
-    prefix = [prefix substringToIndex:range.location];
-    NSString *keyPrefix = [prefix stringByReplacingOccurrencesOfString:redirectScheme withString:customKeyScheme];
-    NSData *data = [[self getCustomPlaylist:prefix andKeyPrefix:keyPrefix totalElements:150] dataUsingEncoding:NSUTF8StringEncoding];
-    
-    if (data)
-    {
-        [loadingRequest.dataRequest respondWithData:data];
-        [loadingRequest finishLoading];
-    } else
-    {
-        [self reportError:loadingRequest withErrorCode:badRequestErrorCode];
-    }
-    
-    return YES;
-}
 @end
 
 #pragma mark - RCTVideoResourceLoaderDelegate CustomKey
@@ -214,31 +79,90 @@ static int badRequestErrorCode = 400;
     return ([customKeyScheme isEqualToString:scheme]);
 }
 
-
 - (NSData*) getKey:(NSURL*) url
 {
     NSURL *newURL = [NSURL URLWithString:[[url absoluteString] stringByReplacingOccurrencesOfString:customKeyScheme withString:httpScheme]];
     return [[NSData alloc] initWithContentsOfURL:newURL];
 }
-/*!
- *  Handles the custom key scheme:
- *
- *  1) Verifies its a custom key request, otherwise report an error.
- *  2) Creates the URL for the key
- *  3) Create a response with the new URL and report success.
- */
+
+- (NSData*) getCertificate
+{
+    return [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString: certificateURL]];
+
+}
+
+-(BOOL) getAuthXML:(void (^)(NSData *data, NSURLResponse *response, NSError *error))handler
+{
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    [request setURL: [NSURL URLWithString: authXMLURL]];
+    [request setHTTPMethod: @"GET"];
+    [request setValue:[NSString stringWithFormat: @"Fandor Handshake=%@", apiSecret] forHTTPHeaderField:@"Authorization"];
+    
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
+    
+    [[session dataTaskWithRequest:request completionHandler:handler] resume];
+    
+    
+    return YES;
+}
+
+- (BOOL) getLicense:(NSData*) requestBody :(void (^)(NSData *data, NSURLResponse *response, NSError *error))handler
+{
+    // [[NSString alloc] initWithData: spc ] encoding:NSUTF8StringEncoding]]
+    // Make request to keyos for contentKey and set it.
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    [request setURL: [NSURL URLWithString:@"https://fp-keyos.licensekeyserver.com/getkey"]];
+    [request setHTTPMethod:@"POST"];
+    [request setHTTPBody: requestBody];
+    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+    [request setValue:authXML forHTTPHeaderField:@"customdata"];
+    
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
+
+    
+    [[session dataTaskWithRequest:request completionHandler:handler] resume];
+    
+    return YES;
+}
+
 - (BOOL) handleCustomKeyRequest:(AVAssetResourceLoadingRequest*) loadingRequest
 {
-    NSData* data = [self getKey:[[loadingRequest request] URL]];
-    if (data)
-    {
-        [loadingRequest.dataRequest respondWithData:data];
-        [loadingRequest finishLoading];
-    } else
-    {
-        [self reportError:loadingRequest withErrorCode:badRequestErrorCode];
-    }
-    return YES;
+    [self getAuthXML:^(NSData *data, NSURLResponse *response, NSError *error){
+        authXML = [data base64EncodedStringWithOptions:0];
+       
+        NSString* host = [[[loadingRequest request] URL] host];
+        NSData* contentID = [NSData dataWithBytes: [host cStringUsingEncoding: NSUTF8StringEncoding]
+                                           length: [host lengthOfBytesUsingEncoding: NSUTF8StringEncoding]];
+        NSData* certificate = [self getCertificate];
+        
+        NSError* spcError;
+        NSData* spcData = [loadingRequest streamingContentKeyRequestDataForApp: certificate
+                                                             contentIdentifier: contentID
+                                                                       options: 0
+                                                                         error: &spcError];
+        NSString* base64SPCString = [spcData base64EncodedStringWithOptions:0];
+        
+        
+        // create a url string: spc=spcData&assetId=assetIdData
+        NSString* requestBody = [NSString stringWithFormat:@"spc=%@&assetId=%@", base64SPCString, host];
+
+        [self getLicense:[requestBody dataUsingEncoding:NSUTF8StringEncoding] :^(NSData *data, NSURLResponse *response, NSError *error) {
+            
+            NSString* base64String = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:base64String options:0];
+            
+            if (data)
+            {
+                [loadingRequest.dataRequest respondWithData: decodedData];
+                
+                [loadingRequest finishLoading];
+            } else
+            {
+                [self reportError:loadingRequest withErrorCode:badRequestErrorCode];
+            }
+        }];
+    }];
     
+    return YES;
 }
 @end

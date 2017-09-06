@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		31CAFB211CADA8CD009BCF6F /* UIView+FindUIViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 31CAFB201CADA8CD009BCF6F /* UIView+FindUIViewController.m */; };
 		31CAFB2F1CADC77F009BCF6F /* RCTVideoPlayerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 31CAFB2E1CADC77F009BCF6F /* RCTVideoPlayerViewController.m */; };
-		7E60F6301F577830003FF6CD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E60F62F1F577830003FF6CD /* Foundation.framework */; };
 		7EE655911F5B32AF001F7D85 /* RCTVideoResourceLoaderDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7EE655901F5B32AF001F7D85 /* RCTVideoResourceLoaderDelegate.m */; };
 		BBD49E3F1AC8DEF000610F8E /* RCTVideo.m in Sources */ = {isa = PBXBuildFile; fileRef = BBD49E3A1AC8DEF000610F8E /* RCTVideo.m */; };
 		BBD49E401AC8DEF000610F8E /* RCTVideoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = BBD49E3C1AC8DEF000610F8E /* RCTVideoManager.m */; };
@@ -48,7 +47,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7E60F6301F577830003FF6CD /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

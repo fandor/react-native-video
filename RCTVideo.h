@@ -1,7 +1,7 @@
+#import <AVFoundation/AVFoundation.h>
 #import "RCTView.h"
 #import "AVKit/AVKit.h"
 #import "UIView+FindUIViewController.h"
-#import <AVFoundation/AVFoundation.h>
 #import "RCTVideoPlayerViewController.h"
 #import "RCTVideoPlayerViewControllerDelegate.h"
 

@@ -1,4 +1,3 @@
-#import <AVFoundation/AVFoundation.h>
 #import "RCTConvert.h"
 #import "RCTVideo.h"
 #import "RCTBridgeModule.h"
@@ -242,10 +241,10 @@ static NSString *const playbackRate = @"rate";
 
 - (void)setSrc:(NSDictionary *)source
 {
-    
-    
+
+
     NSLog(@"%@", [[NSProcessInfo processInfo] environment]);
-    
+
     [self removePlayerTimeObserver];
     [self removePlayerItemObservers];
     _playerItem = [self playerItemForSource:source];
@@ -286,29 +285,22 @@ static NSString *const playbackRate = @"rate";
 {
     bool isNetwork = [RCTConvert BOOL:[source objectForKey:@"isNetwork"]];
     bool isAsset = [RCTConvert BOOL:[source objectForKey:@"isAsset"]];
-//  NSString *uri = @"https://s3.amazonaws.com/fandor-transcode-source/fps_test/master.m3u8";
-  
+
     NSString *uri = [source objectForKey:@"uri"];
     NSString *type = [source objectForKey:@"type"];
-    
-    NSLog(@"%@", uri);
-    
+
     NSURL *url = (isNetwork || isAsset) ?
     [NSURL URLWithString:uri] :
     [[NSURL alloc] initFileURLWithPath:[[NSBundle mainBundle] pathForResource:uri ofType:type]];
 
-//  if (isAsset) {
     AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:nil];
     AVAssetResourceLoader *resourceLoader = asset.resourceLoader;
-    
-    
+
+
     self->delegate = [[RCTVideoResourceLoaderDelegate alloc] init];
     [resourceLoader setDelegate:delegate queue:dispatch_queue_create("RCTVideoResourceLoaderDelegate loader", nil)];
-    
-    return [AVPlayerItem playerItemWithAsset:asset];
-//  }
 
-//  return [AVPlayerItem playerItemWithURL:url];
+    return [AVPlayerItem playerItemWithAsset:asset];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context

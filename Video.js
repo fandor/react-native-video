@@ -10,6 +10,7 @@ const styles = StyleSheet.create({
 });
 
 export default class Video extends Component {
+
   setNativeProps(nativeProps) {
     this._root.setNativeProps(nativeProps);
   }

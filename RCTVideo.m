@@ -305,6 +305,13 @@ static NSString *const playbackRate = @"rate";
         NSObject *width = @"undefined";
         NSObject *height = @"undefined";
         NSString *orientation = @"undefined";
+        BOOL isAvailable = NO;
+
+        AVMediaSelectionGroup *subtitleGroup = [_playerItem.asset mediaSelectionGroupForMediaCharacteristic:AVMediaCharacteristicLegible];
+
+        if (subtitleGroup) {
+          isAvailable = YES;
+        }
 
         if ([_playerItem.asset tracksWithMediaType:AVMediaTypeVideo].count > 0) {
           AVAssetTrack *videoTrack = [[_playerItem.asset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0];
@@ -331,6 +338,7 @@ static NSString *const playbackRate = @"rate";
                                                    @"canPlaySlowReverse": [NSNumber numberWithBool:_playerItem.canPlaySlowReverse],
                                                    @"canStepBackward": [NSNumber numberWithBool:_playerItem.canStepBackward],
                                                    @"canStepForward": [NSNumber numberWithBool:_playerItem.canStepForward],
+                                                   @"canShowCaptions": [NSNumber numberWithBool: isAvailable],
                                                    @"naturalSize": @{
                                                         @"width": width,
                                                         @"height": height,

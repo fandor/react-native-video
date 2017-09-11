@@ -3,12 +3,19 @@
 #import "RCTBridgeModule.h"
 #import "RCTEventDispatcher.h"
 #import "UIView+React.h"
+#import "RCTVideoResourceLoaderDelegate.h"
 
 static NSString *const statusKeyPath = @"status";
 static NSString *const playbackLikelyToKeepUpKeyPath = @"playbackLikelyToKeepUp";
 static NSString *const playbackBufferEmptyKeyPath = @"playbackBufferEmpty";
 static NSString *const readyForDisplayKeyPath = @"readyForDisplay";
 static NSString *const playbackRate = @"rate";
+
+
+@interface RCTVideo () {
+    RCTVideoResourceLoaderDelegate *delegate;
+}
+@end
 
 @implementation RCTVideo
 {
@@ -211,10 +218,10 @@ static NSString *const playbackRate = @"rate";
 
 - (void)addPlayerItemObservers
 {
-  [_playerItem addObserver:self forKeyPath:statusKeyPath options:0 context:nil];
-  [_playerItem addObserver:self forKeyPath:playbackBufferEmptyKeyPath options:0 context:nil];
-  [_playerItem addObserver:self forKeyPath:playbackLikelyToKeepUpKeyPath options:0 context:nil];
-  _playerItemObserversSet = YES;
+    [_playerItem addObserver:self forKeyPath:statusKeyPath options:0 context:nil];
+    [_playerItem addObserver:self forKeyPath:playbackBufferEmptyKeyPath options:0 context:nil];
+    [_playerItem addObserver:self forKeyPath:playbackLikelyToKeepUpKeyPath options:0 context:nil];
+    _playerItemObserversSet = YES;
 }
 
 /* Fixes https://github.com/brentvatne/react-native-video/issues/43
@@ -222,47 +229,49 @@ static NSString *const playbackRate = @"rate";
  * observer set */
 - (void)removePlayerItemObservers
 {
-  if (_playerItemObserversSet) {
-    [_playerItem removeObserver:self forKeyPath:statusKeyPath];
-    [_playerItem removeObserver:self forKeyPath:playbackBufferEmptyKeyPath];
-    [_playerItem removeObserver:self forKeyPath:playbackLikelyToKeepUpKeyPath];
-    _playerItemObserversSet = NO;
-  }
+    if (_playerItemObserversSet) {
+        [_playerItem removeObserver:self forKeyPath:statusKeyPath];
+        [_playerItem removeObserver:self forKeyPath:playbackBufferEmptyKeyPath];
+        [_playerItem removeObserver:self forKeyPath:playbackLikelyToKeepUpKeyPath];
+        _playerItemObserversSet = NO;
+    }
 }
 
 #pragma mark - Player and source
 
 - (void)setSrc:(NSDictionary *)source
 {
-  [self removePlayerTimeObserver];
-  [self removePlayerItemObservers];
-  _playerItem = [self playerItemForSource:source];
-  [self addPlayerItemObservers];
 
-  [_player pause];
-  [self removePlayerLayer];
-  [_playerViewController.view removeFromSuperview];
-  _playerViewController = nil;
 
-  if (_playbackRateObserverRegistered) {
+    [self removePlayerTimeObserver];
+    [self removePlayerItemObservers];
+    _playerItem = [self playerItemForSource:source];
+    [self addPlayerItemObservers];
+
+    [_player pause];
+    [self removePlayerLayer];
+    [_playerViewController.view removeFromSuperview];
+    _playerViewController = nil;
+
+    if (_playbackRateObserverRegistered) {
     [_player removeObserver:self forKeyPath:playbackRate context:nil];
     _playbackRateObserverRegistered = NO;
-  }
+    }
 
-  _player = [AVPlayer playerWithPlayerItem:_playerItem];
-  _player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
+    _player = [AVPlayer playerWithPlayerItem:_playerItem];
+    _player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
 
-  [_player addObserver:self forKeyPath:playbackRate options:0 context:nil];
-  _playbackRateObserverRegistered = YES;
+    [_player addObserver:self forKeyPath:playbackRate options:0 context:nil];
+    _playbackRateObserverRegistered = YES;
 
-  const Float64 progressUpdateIntervalMS = _progressUpdateInterval / 1000;
-  // @see endScrubbing in AVPlayerDemoPlaybackViewController.m of https://developer.apple.com/library/ios/samplecode/AVPlayerDemo/Introduction/Intro.html
-  __weak RCTVideo *weakSelf = self;
-  _timeObserver = [_player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(progressUpdateIntervalMS, NSEC_PER_SEC)
+    const Float64 progressUpdateIntervalMS = _progressUpdateInterval / 1000;
+    // @see endScrubbing in AVPlayerDemoPlaybackViewController.m of https://developer.apple.com/library/ios/samplecode/AVPlayerDemo/Introduction/Intro.html
+    __weak RCTVideo *weakSelf = self;
+    _timeObserver = [_player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(progressUpdateIntervalMS, NSEC_PER_SEC)
                                                         queue:NULL
                                                    usingBlock:^(CMTime time) { [weakSelf sendProgressUpdate]; }
                    ];
-  [_eventDispatcher sendInputEventWithName:@"onVideoLoadStart"
+    [_eventDispatcher sendInputEventWithName:@"onVideoLoadStart"
                                       body:@{@"src": @{
                                                  @"uri": [source objectForKey:@"uri"],
                                                  @"type": [source objectForKey:@"type"],
@@ -272,21 +281,24 @@ static NSString *const playbackRate = @"rate";
 
 - (AVPlayerItem*)playerItemForSource:(NSDictionary *)source
 {
-  bool isNetwork = [RCTConvert BOOL:[source objectForKey:@"isNetwork"]];
-  bool isAsset = [RCTConvert BOOL:[source objectForKey:@"isAsset"]];
-  NSString *uri = [source objectForKey:@"uri"];
-  NSString *type = [source objectForKey:@"type"];
+    bool isNetwork = [RCTConvert BOOL:[source objectForKey:@"isNetwork"]];
+    bool isAsset = [RCTConvert BOOL:[source objectForKey:@"isAsset"]];
 
-  NSURL *url = (isNetwork || isAsset) ?
+    NSString *uri = [source objectForKey:@"uri"];
+    NSString *type = [source objectForKey:@"type"];
+
+    NSURL *url = (isNetwork || isAsset) ?
     [NSURL URLWithString:uri] :
     [[NSURL alloc] initFileURLWithPath:[[NSBundle mainBundle] pathForResource:uri ofType:type]];
 
-  if (isAsset) {
-    AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];
-    return [AVPlayerItem playerItemWithAsset:asset];
-  }
+    AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:nil];
+    AVAssetResourceLoader *resourceLoader = asset.resourceLoader;
 
-  return [AVPlayerItem playerItemWithURL:url];
+
+    self->delegate = [[RCTVideoResourceLoaderDelegate alloc] init];
+    [resourceLoader setDelegate:delegate queue:dispatch_queue_create("RCTVideoResourceLoaderDelegate loader", nil)];
+
+    return [AVPlayerItem playerItemWithAsset:asset];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
